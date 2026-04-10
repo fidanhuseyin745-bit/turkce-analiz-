@@ -1,0 +1,54 @@
+import re
+from flask import Flask, render_template_string, request
+
+app = Flask(__name__)
+
+sozluk = {
+    "yabanci": {"pardon": "affedersiniz", "link": "bağlantı", "online": "çevrim içi", "detay": "ayrıntı"},
+    "hatalar": {"herkez": "herkes", "yanlış": "yanlış", "yanlız": "yalnız", "şuan": "şu an"}
+}
+
+html_template = """
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Türkçe Analiz Motoru</title>
+    <style>
+        body { background: url('https://w.wallhaven.cc/full/8o/wallhaven-8o9wlk.jpg') no-repeat center center fixed; background-size: cover; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: -1; }
+        .container { background: rgba(30, 41, 59, 0.3); padding: 30px; border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 400px; text-align: center; }
+        textarea { width: 100%; height: 120px; border-radius: 12px; border: none; padding: 15px; box-sizing: border-box; background: rgba(0,0,0,0.5); color: white; font-size: 16px; margin-bottom: 15px; }
+        button { width: 100%; padding: 15px; border-radius: 12px; border: none; background: #911a24; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #b91c1c; }
+        .result { margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="container">
+        <h1>TÜRKÇE ANALİZ</h1>
+        <form method="POST"><textarea name="metin" placeholder="Metni buraya yazın...">{{ original }}</textarea><button type="submit">ANALİZ ET</button></form>
+        {% if result %}<div class="result"><h3>Dil Puanı: %{{ score }}</h3><p>{{ result }}</p></div>{% endif %}
+    </div>
+</body>
+</html>
+"""
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    original, result, score = "", "", 100
+    if request.method == 'POST':
+        original = request.form.get('metin', '')
+        # Basit bir kelime değişimi örneği
+        result = original
+        for h, d in sozluk["hatalar"].items():
+            result = result.replace(h, d)
+        for y, t in sozluk["yabanci"].items():
+            result = result.replace(y, t)
+        score = 90
+    return render_template_string(html_template, original=original, result=result, score=score)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
